@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { File, ArrowRight, ArrowDown } from 'lucide-react';
+import { Vortex } from '@/components/ui/vortex';
 
 // Mock data for petrochemical products
 const products = [
@@ -32,6 +33,10 @@ export default function Dashboard() {
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
+      <Vortex
+        backgroundColor="black"
+        className="flex items-center flex-col justify-center px-2 md:px-10 py-4 w-full h-full"
+      >
       {/* Background image */}
       <img src='/pic_bg.png' alt="Background" className="absolute inset-0 object-cover w-full h-full" style={{ objectFit: 'cover' }} />
 
@@ -87,6 +92,7 @@ export default function Dashboard() {
           <ArrowDown className="h-5 w-5" />
         </button>
       </div>
+      </Vortex>
     </div>
   );
 }

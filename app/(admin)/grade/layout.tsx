@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 
 
@@ -24,10 +25,15 @@ export default function RootLayout({
                             <img src='/ic_logo.gif' alt="Company Logo" className="h-24" />
                         </Link>
                     </div>
-                    <Card className="container mx-auto px-4 py-8 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-5xl relative z-10">
+                    <Button className="bg-orange-500 absolute top-4 font-bold text-2xl center-4 text-zinc-200" size={"lg"}>
+                        <Link href="/">
+                            Home
+                        </Link>
+                    </Button>
+                    <div className="mt-8 container mx-auto px-4 py-1 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-7xl relative z-10">
                         
-                        <CardContent className="space-y-8">{children} </CardContent>
-                        </Card>
+                        {children} 
+                        </div>
         
         </div>
         <div className="absolute top-4 right-4">

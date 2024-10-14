@@ -61,21 +61,16 @@ export default function Formpage() {
     return (
         <FormProvider {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <div
-                    className="min-h-screen w-full bg-cover bg-center flex items-center justify-center p-4"
-                    style={{ backgroundImage: "url('/pic_bg.png')" }}
-                >
-                    <div className="absolute top-4 left-4">
-                        <Link href="/">
-                            <img src='/ic_logo.gif' alt="Company Logo" className="h-24" />
-                        </Link>
-                    </div>
-                    <Card className="container mx-auto px-4 py-8 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-5xl relative z-10">
-                        <CardHeader>
-                            <CardTitle className="text-4xl font-bold text-center">Petrochemical Interest Form</CardTitle>
+               
+                    
+            <div className="container mx-auto p-1">
+               
+            <CardHeader>
+                            <CardTitle className="text-3xl font-bold text-center text-gray-800">Petrochemical Interest Form</CardTitle>
                             <CardDescription className="text-center text-xl">Please enter your details to learn more about petrochemical grades</CardDescription>
+                            <hr/>
                         </CardHeader>
-                        <CardContent className="space-y-8">
+                        <CardContent className="space-y-4">
                             <FormField
                                 control={form.control}
                                 name="name"
@@ -186,11 +181,11 @@ export default function Formpage() {
                         <CardFooter>
                             <Button type="submit" className="w-full text-lg bg-green-200" disabled={isPending}>Submit</Button>
                         </CardFooter>
-                    </Card>
-                    <div className="absolute top-4 right-4">
-                        <img src='/propel_new.jpg' alt="Propel Image" className="h-24" />
                     </div>
-                </div>
+                   
+                    
+                   
+               
             </form>
         </FormProvider>
     );
