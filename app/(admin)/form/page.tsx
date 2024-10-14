@@ -1,4 +1,4 @@
-'use client'
+'use client';
 import Link from 'next/link';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,32 +10,53 @@ import PropelImage from "@/propel_new.jpg";
 import { useRouter } from 'next/navigation';
 import { useTransition, useState } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { z } from 'zod';
-import { formSchema } from '@/lib/formSchema';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
-export default function Component() {
+export default function Formpage() {
     const [isPending, startTransition] = useTransition();
     const router = useRouter();
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
+    const form = useForm({
         defaultValues: {
             name: "",
             mobileNumber: "123",
             email: "",
             interest: "",
-            interest_Area:""
+            interest_Area: "",
+            Characterestics:""
         },
     });
 
-    const onSubmit = async (values: z.infer<typeof formSchema>) => {
-        // Convert mobileNumber from string to number
-       
+    const onSubmit = async (values: any) => {
+        console.log("Form submitted successfully:", values);
+        try {
+            const response = await fetch('/api/saveform', {
+                method: 'POST',
+                body: JSON.stringify(values),
+            });
+    
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+    
+            const data = await response.json();
+            console.log("Form submitted successfully:", data);
+    
+             // Construct the query string manually
+        const query = new URLSearchParams({
+            interest_Area: values.interest_Area || '',
+            Characterestics: values.Characterestics || '',
+        }).toString();
 
-        console.log("Form submitted:", values);
-        alert("Form submitted");
+        // Redirect to the grade page with query parameters
+        router.replace(`/grade?${query}`);
+        } catch (error) {
+            console.error("Error submitting form:", error);
+            alert("Error submitting form. Please try again.");
+        }
     };
+    
+    
+
 
     return (
         <FormProvider {...form}>
@@ -81,7 +102,7 @@ export default function Component() {
                                         <FormLabel className="text-lg">Mobile Number</FormLabel>
                                         <FormControl>
                                             <Input
-                                                type="text" // Change this to text to capture digits
+                                                type="text"
                                                 placeholder="Enter your mobile number"
                                                 {...field}
                                                 disabled={isPending}
@@ -115,6 +136,24 @@ export default function Component() {
                                 render={({ field }) => (
                                     <FormItem>
                                         <FormLabel className="text-lg">Interest Area</FormLabel>
+                                        <FormControl>
+                                            <Input
+                                                type="text"
+                                                placeholder="Enter your Interest Area"
+                                                {...field}
+                                                disabled={isPending}
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                              <FormField
+                                control={form.control}
+                                name="Characterestics"
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="text-lg">Characterestics</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="text"
