@@ -82,17 +82,17 @@ export default function Formpage() {
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
                 <div className="container mx-auto p-1">
                     <CardHeader>
-                        <CardTitle className="text-3xl font-bold text-center text-gray-800">Petrochemical Interest Form</CardTitle>
-                        <CardDescription className="text-center text-xl">Please enter your details to learn more about petrochemical grades</CardDescription>
+                        <CardTitle className="text-5xl font-bold text-center text-blue-800">Petrochemical Interest Form</CardTitle>
+                        <CardDescription className="text-center text-xl text-slate-800">Please enter your details to learn more about petrochemical grades</CardDescription>
                         <hr />
                     </CardHeader>
-                    <CardContent className="space-y-4">
+                    <CardContent className="space-y-4 text-xl">
                         <FormField
                             control={form.control}
                             name="name"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-lg">Name</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Name</FormLabel>
                                     <FormControl>
                                         <Input
                                             placeholder="Enter your name"
@@ -110,7 +110,7 @@ export default function Formpage() {
                             name="mobileNumber"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-lg">Mobile Number</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Mobile Number</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
@@ -128,7 +128,7 @@ export default function Formpage() {
                             name="email"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-lg">Email ID</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Email ID</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="email"
@@ -146,11 +146,11 @@ export default function Formpage() {
                             name="interest_Area"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-lg">Required Application of Polymer Grade</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Area of Interest</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
-                                            placeholder="Enter your Interest Area"
+                                            placeholder="Enter your Interest Area e.g Furniture, toys etc"
                                             {...field}
                                             onChange={handleInterestAreaChange}
                                             disabled={isPending}
@@ -179,7 +179,7 @@ export default function Formpage() {
                             name="Characterestics"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-lg">Characterestics of Product</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Polymer Grade details</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
@@ -194,7 +194,7 @@ export default function Formpage() {
                         />
                     </CardContent>
                     <CardFooter>
-                        <Button type="submit" className="w-full text-lg bg-green-200" disabled={isPending}>Submit</Button>
+                        <Button type="submit" className="w-full p-6 text-xl font-bold text-zinc-100 bg-green-500 " size={"lg"} disabled={isPending}>Submit</Button>
                     </CardFooter>
                 </div>
             </form>

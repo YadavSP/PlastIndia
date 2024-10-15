@@ -30,7 +30,7 @@ export default function RootLayout({
                             Home
                         </Link>
                     </Button>
-                    <div className="mt-8 container mx-auto px-4 py-1 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-7xl relative z-10">
+                    <div className="mt-8 container mx-auto px-4 py-1 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-8xl relative z-10">
                         
                         {children} 
                         </div>

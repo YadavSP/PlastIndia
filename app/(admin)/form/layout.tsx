@@ -24,7 +24,7 @@ export default function RootLayout({
                             <img src='/ic_logo.gif' alt="Company Logo" className="h-24" />
                         </Link>
                     </div>
-                    <div className="mt-28 container mx-auto px-4 py-1 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-6xl relative z-10">
+                    <div className="mt-28 container mx-auto px-4 py-1 bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-lg max-w-8xl relative z-10">
                         
                         {children} 
                         </div>
