@@ -1,4 +1,4 @@
-const sql = require('mssql')
+import sql from 'mssql';
 export default async function connectToDatabase() {
     const config={
 //server: "10.14.91.29",

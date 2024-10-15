@@ -1,8 +1,8 @@
 import sql from 'mssql';
 import connectToDatabase from '@/lib/mssqlconnectdb';
-import { NextRequest, NextResponse } from 'next/server';
+import {  NextResponse } from 'next/server';
 
-export const GET = async (req) => {
+export const GET = async (req: any) => {
   try {
     // Establish a database connection
     await connectToDatabase();

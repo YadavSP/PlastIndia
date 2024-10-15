@@ -4,12 +4,13 @@ import { Button } from "@/components/ui/button";
 import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+//import { useTransition } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import Link from 'next/link';
 
 export default function Formpage() {
-    const [isPending, startTransition] = useTransition();
+   // const [isPending, startTransition] = useTransition();
     const router = useRouter();
     const form = useForm({
         defaultValues: {
@@ -98,7 +99,7 @@ export default function Formpage() {
                                             placeholder="Enter your name"
                                             {...field}
                                             type="text"
-                                            disabled={isPending}
+                                            //disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -116,7 +117,7 @@ export default function Formpage() {
                                             type="text"
                                             placeholder="Enter your mobile number"
                                             {...field}
-                                            disabled={isPending}
+                                            //disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -134,7 +135,7 @@ export default function Formpage() {
                                             type="email"
                                             placeholder="Enter your email address"
                                             {...field}
-                                            disabled={isPending}
+                                           // disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -146,14 +147,14 @@ export default function Formpage() {
                             name="interest_Area"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Area of Interest</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Products/Application</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
                                             placeholder="Enter your Interest Area e.g Furniture, toys etc"
                                             {...field}
                                             onChange={handleInterestAreaChange}
-                                            disabled={isPending}
+                                           // disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -179,13 +180,13 @@ export default function Formpage() {
                             name="Characterestics"
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Polymer Grade details</FormLabel>
+                                    <FormLabel className="text-xl font-semibold">Any specific characteristics</FormLabel>
                                     <FormControl>
                                         <Input
                                             type="text"
                                             placeholder="Enter your Characterestics"
                                             {...field}
-                                            disabled={isPending}
+                                            //disabled={isPending}
                                         />
                                     </FormControl>
                                     <FormMessage />
@@ -193,8 +194,16 @@ export default function Formpage() {
                             )}
                         />
                     </CardContent>
-                    <CardFooter>
-                        <Button type="submit" className="w-full p-6 text-xl font-bold text-zinc-100 bg-green-500 " size={"lg"} disabled={isPending}>Submit</Button>
+                    <CardFooter className='flex gap-x-6'>
+                        
+                    <Link href="/" className='w-full'>
+                            <Button className="w-full p-6 text-xl font-bold text-zinc-100 bg-blue-500">
+                                Back
+                            </Button>
+                        </Link>
+                        <Button type="submit" className="w-full p-6 text-xl font-bold text-zinc-100 bg-green-500 " size={"lg"} 
+                        //disabled={isPending}
+                        >Submit</Button>
                     </CardFooter>
                 </div>
             </form>

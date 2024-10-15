@@ -1,34 +1,12 @@
 'use client'
 
 import Link from 'next/link';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { File, ArrowRight, ArrowDown } from 'lucide-react';
-import { Vortex } from '@/components/ui/vortex';
 
-// Mock data for petrochemical products
-const products = [
-  { id: 1, name: "Polyethylene", grades: ["HDPE", "LDPE", "LLDPE"], color: "bg-timberwolf" },
-  { id: 2, name: "Polypropylene", grades: ["Homopolymer", "Copolymer"], color: "bg-timberwolf" },
-  { id: 3, name: "Polyvinyl Chloride", grades: ["Rigid PVC", "Flexible PVC"], color: "bg-timberwolf" },
-  { id: 4, name: "Polystyrene", grades: ["GPPS", "HIPS"], color: "bg-french-gray" },
-  { id: 5, name: "Acrylonitrile Butadiene Styrene", grades: ["Injection Molding", "Extrusion"], color: "bg-french-gray" },
-  { id: 6, name: "Polyethylene Terephthalate", grades: ["Bottle Grade", "Fiber Grade"], color: "bg-french-gray" },
-  { id: 7, name: "Polyethy", grades: ["HDPE", "LDPE", "LLDPE"], color: "bg-timberwolf" },
-  { id: 8, name: "Polypropylene", grades: ["Homopolymer", "Copolymer"], color: "bg-timberwolf" },
-  { id: 9, name: "Polyvinyl Chloride", grades: ["Rigid PVC", "Flexible PVC"], color: "bg-timberwolf" },
-  { id: 10, name: "Polystyrene", grades: ["GPPS", "HIPS"], color: "bg-french-gray" },
-  { id: 11, name: "Acrylonitrile Butadiene Styrene", grades: ["Injection Molding", "Extrusion"], color: "bg-french-gray" },
-  { id: 12, name: "Polyethylene Terephthalate", grades: ["Bottle Grade", "Fiber Grade"], color: "bg-french-gray" },
-];
+
+
 
 export default function Dashboard() {
-  const scrollToCards = () => {
-    const cardsContainer = document.getElementById('cards-container');
-    if (cardsContainer) {
-      cardsContainer.scrollIntoView({ behavior: 'smooth' });
-    }
-  };
+ 
 
   return (
     <div className="relative min-h-screen overflow-hidden flex items-center justify-center">
