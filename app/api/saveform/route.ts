@@ -15,8 +15,9 @@ export const  POST= async(req: NextRequest) =>{
             name,
             mobileNumber,
             email,
-            interest,
-            interest_Area
+           
+            interest_Area,
+            Characterestics
         } = body;
         console.log("recived api", body);
 
@@ -32,8 +33,8 @@ export const  POST= async(req: NextRequest) =>{
                 .input('Name', sql.NVarChar, name)
                 .input('MobileNumber', sql.NVarChar, mobileNumber)
                 .input('Email', sql.NVarChar, email)
-                .input('Interest', sql.NVarChar, interest)
                 .input('InterestArea', sql.NVarChar, interest_Area)
+                .input('Characterestics', sql.NVarChar, Characterestics)
                 .execute('formsave'); // Call your stored procedure
 
             await transaction.commit(); // Commit the transaction if successful

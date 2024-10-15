@@ -1,14 +1,9 @@
 'use client';
-import Link from 'next/link';
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Logo from "@/ic_logo.gif";
-import PropelImage from "@/propel_new.jpg";
 import { useRouter } from 'next/navigation';
-import { useTransition, useState } from 'react';
+import { useTransition } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 
@@ -18,7 +13,7 @@ export default function Formpage() {
     const form = useForm({
         defaultValues: {
             name: "",
-            mobileNumber: "123",
+            mobileNumber: "+91",
             email: "",
             interest: "",
             interest_Area: "",
@@ -130,7 +125,7 @@ export default function Formpage() {
                                 name="interest_Area"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-lg">Interest Area</FormLabel>
+                                        <FormLabel className="text-lg">Required Application of Polymer Grade</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="text"
@@ -148,7 +143,7 @@ export default function Formpage() {
                                 name="Characterestics"
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-lg">Characterestics</FormLabel>
+                                        <FormLabel className="text-lg">Characterestics of Product</FormLabel>
                                         <FormControl>
                                             <Input
                                                 type="text"
@@ -161,22 +156,7 @@ export default function Formpage() {
                                     </FormItem>
                                 )}
                             />
-                            <div className="space-y-2">
-                                <Label htmlFor="interest" className="text-lg">Area of Interest</Label>
-                                <Select {...form.register("interest")}>
-                                    <SelectTrigger id="interest">
-                                        <SelectValue placeholder="Select your area of interest" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="polymers">Polymers (e.g., PE, PP, PVC)</SelectItem>
-                                        <SelectItem value="aromatics">Aromatics (e.g., Benzene, Toluene, Xylene)</SelectItem>
-                                        <SelectItem value="olefins">Olefins (e.g., Ethylene, Propylene)</SelectItem>
-                                        <SelectItem value="solvents">Solvents (e.g., Acetone, MEK)</SelectItem>
-                                        <SelectItem value="other">Other Petrochemicals</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <FormMessage />
-                            </div>
+                           
                         </CardContent>
                         <CardFooter>
                             <Button type="submit" className="w-full text-lg bg-green-200" disabled={isPending}>Submit</Button>
