@@ -1,212 +1,300 @@
-'use client';
-import { useState } from 'react';
-import { Button } from "@/components/ui/button";
-import { CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { useRouter } from 'next/navigation';
-//import { useTransition } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import Link from 'next/link';
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from "@/components/ui/button"
+import {
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { useRouter } from 'next/navigation'
+import { useForm, FormProvider } from 'react-hook-form'
+import {
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
+import Link from 'next/link'
+import { toast } from "sonner"
+import clsx from "clsx"
+
+type FormValues = {
+  name: string
+  mobileNumber: string
+  email: string
+  interest_Area: string
+  Characterestics: string
+}
 
 export default function Formpage() {
-   // const [isPending, startTransition] = useTransition();
-    const router = useRouter();
-    const form = useForm({
-        defaultValues: {
-            name: "",
-            mobileNumber: "+91",
-            email: "",
-            interest: "",
-            interest_Area: "",
-            Characterestics: ""
-        },
-    });
+  const router = useRouter()
 
-    const [suggestions, setSuggestions] = useState([]);
-    const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const form = useForm<FormValues>({
+    defaultValues: {
+      name: "",
+      mobileNumber: "",
+      email: "",
+      interest_Area: "",
+      Characterestics: "",
+    },
+    mode: "onSubmit",
+  })
 
-    const onSubmit = async (values: { interest_Area: any; Characterestics: any; }) => {
-        console.log("Form submitted successfully:", values);
-        try {
-            const response = await fetch('/api/saveform', {
-                method: 'POST',
-                body: JSON.stringify(values),
-            });
+  const {
+    control,
+    watch,
+    formState: { errors },
+  } = form
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
+  const [suggestions, setSuggestions] = useState<string[]>([])
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
 
-            const data = await response.json();
-            console.log("Form submitted successfully:", data);
+  const interestAreaValue = watch("interest_Area")
 
-            const query = new URLSearchParams({
-                interest_Area: values.interest_Area || '',
-                Characterestics: values.Characterestics || '',
-            }).toString();
+  /* ---------------- Suggestions ---------------- */
 
-            router.replace(`/grade?${query}`);
-        } catch (error) {
-            console.error("Error submitting form:", error);
-            alert("Error submitting form. Please try again.");
-        }
-    };
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (interestAreaValue && interestAreaValue.length >= 3) {
+        fetchSuggestions(interestAreaValue)
+      } else {
+        setSuggestions([])
+      }
+    }, 500)
 
-    const handleInterestAreaChange = async (event: { target: { value: any; }; }) => {
-        const value = event.target.value;
-        form.setValue("interest_Area", value);
+    return () => clearTimeout(timer)
+  }, [interestAreaValue])
 
-        if (value) {
-            setLoadingSuggestions(true);
-            try {
-                const response = await fetch(`/api/getSuggestions?query=${encodeURIComponent(value)}`);
-                const data = await response.json();
-                setSuggestions(data);
-            } catch (error) {
-                console.error("Error fetching suggestions:", error);
-            } finally {
-                setLoadingSuggestions(false);
-            }
-        } else {
-            setSuggestions([]);
-        }
-    };
+  const fetchSuggestions = async (query: string) => {
+    setLoadingSuggestions(true)
+    try {
+      const response = await fetch(
+        `/api/getSuggestions?query=${encodeURIComponent(query)}`
+      )
+      const data = await response.json()
+      setSuggestions(data)
+    } catch {
+      toast.error("Failed to fetch suggestions")
+    } finally {
+      setLoadingSuggestions(false)
+    }
+  }
 
-    const handleSuggestionClick = (suggestion: string) => {
-        form.setValue("interest_Area", suggestion);
-        setSuggestions([]); // Clear suggestions after selecting one
-    };
+  /* ---------------- Submit ---------------- */
 
-    return (
-        <FormProvider {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-                <div className="container mx-auto p-1">
-                    <CardHeader>
-                        <CardTitle className="text-5xl font-bold text-center text-blue-800">Petrochemical Interest Form</CardTitle>
-                        <CardDescription className="text-center text-xl text-slate-800">Please enter your details to learn more about petrochemical grades</CardDescription>
-                        <hr />
-                    </CardHeader>
-                    <CardContent className="space-y-4 text-xl">
-                        <FormField
-                            control={form.control}
-                            name="name"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Name</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            placeholder="Enter your name"
-                                            {...field}
-                                            type="text"
-                                            //disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="mobileNumber"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Mobile Number</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your mobile number"
-                                            {...field}
-                                            //disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="email"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Email ID</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="email"
-                                            placeholder="Enter your email address"
-                                            {...field}
-                                           // disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="interest_Area"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Products/Application</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your Interest Area e.g Furniture, toys etc"
-                                            {...field}
-                                            onChange={handleInterestAreaChange}
-                                           // disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                    {loadingSuggestions && <p>Loading...</p>}
-                                    {suggestions.length > 0 && (
-    <ul className="absolute bg-white border mt-1 rounded shadow">
-        {suggestions.map((suggestion, index) => (
-            <li
-                key={index}
-                onClick={() => handleSuggestionClick(suggestion)}
-                className="p-2 cursor-pointer hover:bg-gray-200"
-            >
-                {suggestion} {/* This is now a string, so it should render correctly */}
-            </li>
-        ))}
-    </ul>
-)}
-                                </FormItem>
-                            )}
-                        />
-                        <FormField
-                            control={form.control}
-                            name="Characterestics"
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className="text-xl font-semibold">Any specific characteristics</FormLabel>
-                                    <FormControl>
-                                        <Input
-                                            type="text"
-                                            placeholder="Enter your Characterestics"
-                                            {...field}
-                                            //disabled={isPending}
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
-                    </CardContent>
-                    <CardFooter className='flex gap-x-6'>
-                        
-                    <Link href="/" className='w-full'>
-                            <Button className="w-full p-6 text-xl font-bold text-zinc-100 bg-blue-500">
-                                Back
-                            </Button>
-                        </Link>
-                        <Button type="submit" className="w-full p-6 text-xl font-bold text-zinc-100 bg-green-500 " size={"lg"} 
-                        //disabled={isPending}
-                        >Submit</Button>
-                    </CardFooter>
-                </div>
-            </form>
-        </FormProvider>
-    );
+  const onSubmit = async (values: FormValues) => {
+    const toastId = toast.loading("Submitting form...", {
+      description: "Please wait",
+    })
+
+    try {
+      const response = await fetch('/api/saveform', {
+        method: 'POST',
+        body: JSON.stringify(values),
+      })
+
+      if (!response.ok) {
+        throw new Error("Submission failed")
+      }
+
+      toast.success("Form submitted successfully", {
+        description: "Redirecting...",
+      })
+
+      const query = new URLSearchParams({
+        interest_Area: values.interest_Area,
+        Characterestics: values.Characterestics,
+      }).toString()
+
+      router.replace(`/grade?${query}`)
+
+    } catch (error: any) {
+      toast.error("Submission failed", {
+        description: error.message,
+      })
+    } finally {
+      toast.dismiss(toastId)
+    }
+  }
+
+  const handleSuggestionClick = (value: string) => {
+    form.setValue("interest_Area", value)
+    setSuggestions([])
+    toast.info("Suggestion selected")
+  }
+
+  /* ---------------- UI ---------------- */
+
+  return (
+    <FormProvider {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit, () => {
+          toast.warning("Please fill all mandatory fields", {
+            description: "Highlighted fields are required",
+          })
+        })}
+        className="space-y-5"
+      >
+        <div className="container mx-auto p-2">
+          <CardHeader>
+            <CardTitle className="text-4xl font-bold text-center text-blue-800">
+              Petrochemical Interest Form
+            </CardTitle>
+            <CardDescription className="text-center text-lg">
+              Fields marked * are mandatory
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="space-y-4">
+
+            {/* NAME */}
+            <FormField
+              control={control}
+              name="name"
+              rules={{ required: "Name is required" }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Enter your full name"
+                      className={clsx(
+                        errors.name && "border-red-500 ring-red-500"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            {/* MOBILE */}
+            <FormField
+              control={control}
+              name="mobileNumber"
+              rules={{
+                required: "Mobile number is required",
+                pattern: {
+                  value: /^[6-9]\d{9}$/,
+                  message: "Enter valid 10-digit mobile number",
+                },
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mobile Number *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="10-digit mobile number"
+                      maxLength={10}
+                      className={clsx(
+                        errors.mobileNumber && "border-red-500 ring-red-500"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            {/* EMAIL */}
+            <FormField
+              control={control}
+              name="email"
+              rules={{
+                required: "Email is required",
+                pattern: {
+                  value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
+                  message: "Invalid email address",
+                },
+              }}
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Email *</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      type="email"
+                      placeholder="example@company.com"
+                      className={clsx(
+                        errors.email && "border-red-500 ring-red-500"
+                      )}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500" />
+                </FormItem>
+              )}
+            />
+
+            {/* INTEREST AREA */}
+            <FormField
+              control={control}
+              name="interest_Area"
+              render={({ field }) => (
+                <FormItem className="relative">
+                  <FormLabel>Products / Application</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="Furniture, Toys, Packaging etc."
+                    />
+                  </FormControl>
+
+                  {loadingSuggestions && (
+                    <p className="text-blue-500 text-sm">Searching...</p>
+                  )}
+
+                  {suggestions.length > 0 && (
+                    <ul className="absolute z-50 bg-white border w-full rounded shadow">
+                      {suggestions.map((s, i) => (
+                        <li
+                          key={i}
+                          onClick={() => handleSuggestionClick(s)}
+                          className="p-2 hover:bg-blue-50 cursor-pointer"
+                        >
+                          {s}
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </FormItem>
+              )}
+            />
+
+            {/* CHARACTERISTICS */}
+            <FormField
+              control={control}
+              name="Characterestics"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Specific Characteristics</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      placeholder="High strength, flexibility, UV resistance etc."
+                    />
+                  </FormControl>
+                </FormItem>
+              )}
+            />
+          </CardContent>
+
+          <CardFooter className="flex gap-4">
+            <Link href="/" className="w-full">
+              <Button className="w-full bg-blue-500">Back</Button>
+            </Link>
+            <Button type="submit" className="w-full bg-green-600">
+              Submit
+            </Button>
+          </CardFooter>
+        </div>
+      </form>
+    </FormProvider>
+  )
 }
