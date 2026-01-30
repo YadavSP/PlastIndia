@@ -78,7 +78,7 @@ const GradesPage = () => {
     }, []); // No dependencies for fetchGrades itself, as it uses arguments
 
     // Effect to call API whenever filters change
- useEffect(() => {
+    useEffect(() => {
         fetchGrades(filters.interestArea, filters.characteristics);
         // Optionally update URL when filters change
         const newSearchParams = new URLSearchParams();
@@ -165,95 +165,95 @@ const GradesPage = () => {
                                             >
                                                 <span className="text-sm font-normal text-gray-900">
                                                     Grade ID –
-                                                    <Badge 
-                                                className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                            >
-                                                <span className="text-sm font-normal text-gray-900">
-                                                     {grade.GRADE_ID}
-                                                </span>
+                                                    <Badge
+                                                        className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
+                                                    >
+                                                        <span className="text-sm font-normal text-gray-900">
+                                                            {grade.GRADE_ID}
+                                                        </span>
 
-                                            </Badge>
+                                                    </Badge>
 
-                                                    
-                                                    
+
+
                                                 </span>
 
                                             </Badge>
                                         </div>
 
-                                        <Button  onClick={() => router.push(`/grade/${grade.GRADE_ID}`)} 
+                                        <Button onClick={() => router.push(`/grade/${grade.GRADE_ID}`)}
                                             className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be] 
                  text-[#00164E] font-bold hover:opacity-90 rounded-full"
                                         >
                                             View Details
                                         </Button>
-                                       
+
                                     </CardHeader>
 
                                     {/* Content */}
                                     <CardContent className=" space-y-4">
                                         {/* Property Badges */}
                                         <div className="flex flex-wrap gap-2">
-                                            
-                                             <Badge
+
+                                            <Badge
                                                 className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
                                             >
                                                 <span className="text-sm font-normal text-gray-900">
                                                     Sector –
-                                                    <Badge 
-                                                className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                            >
-                                                <span className="text-sm font-normal text-gray-900">
-                                                     {grade.SECTOR_NAME}
+                                                    <Badge
+                                                        className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
+                                                    >
+                                                        <span className="text-sm font-normal text-gray-900">
+                                                            {grade.SECTOR_NAME}
+                                                        </span>
+
+                                                    </Badge>
+
                                                 </span>
 
                                             </Badge>
-     
-                                                </span>
 
-                                            </Badge>
-                                            
 
                                             <Badge
                                                 variant="secondary"
                                                 className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
                                             >
                                                 <Ruler className="mr-1 h-4 w-4 text-pink-400" />
-                                                 <span className="text-sm font-normal text-gray-900">
-                                                      MFI – 
-                                                </span>
-                                              
-                                                <Badge 
-                                                className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                            >
                                                 <span className="text-sm font-normal text-gray-900">
-                                                     {grade.MFI}
+                                                    MFI –
                                                 </span>
 
-                                            </Badge>
-                                                
+                                                <Badge
+                                                    className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
+                                                >
+                                                    <span className="text-sm font-normal text-gray-900">
+                                                        {grade.MFI}
+                                                    </span>
+
+                                                </Badge>
+
                                             </Badge>
                                             <Badge
                                                 variant="secondary"
                                                 className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
                                             >
-                                                 <Lightbulb className="mr-1 h-4 w-4 text-purple-400" />
-                                                 <span className="text-sm font-normal text-gray-900">
-                                                      Density – 
-                                                </span>
-                                              
-                                                <Badge 
-                                                className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                            >
+                                                <Lightbulb className="mr-1 h-4 w-4 text-purple-400" />
                                                 <span className="text-sm font-normal text-gray-900">
-                                                     {grade.DENSITY}
+                                                    Density –
                                                 </span>
 
-                                            </Badge>
-                                                
+                                                <Badge
+                                                    className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
+                                                >
+                                                    <span className="text-sm font-normal text-gray-900">
+                                                        {grade.DENSITY}
+                                                    </span>
+
+                                                </Badge>
+
                                             </Badge>
 
-                                            
+
                                         </div>
 
                                         {/* Special Characteristics */}

@@ -4,6 +4,10 @@ import Link from 'next/link';
 
 export default function Dashboard() {
   return (
+
+
+
+    
     <div className="relative flex flex-col items-center justify-center  p-4"> {/* Added items-center, min-h-screen, and p-4 for overall centering and responsiveness */}
 
       {/* Heading */}
@@ -12,11 +16,18 @@ export default function Dashboard() {
       </h1>
 
       {/* Blurred glass effect container */}
-      <div className="w-full max-w-6xl bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl shadow-2xl relative z-10 p-4 md:p-8 lg:p-12 border border-white border-opacity-20 flex items-center justify-center min-h-[200px] h-[50vh]"> {/* Made flex, added min-h, dynamic height (40vh), and responsive padding */}
-        {/* Example content inside the glass effect, which will now be centered */}
-        <p className="text-white text-lg md:text-xl text-center">
-          Click the button below to start exploring our products.
-        </p>
+      <div className="w-full max-w-5xl bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl shadow-2xl relative z-10 p-4 md:p-8 border border-white border-opacity-20 flex items-center justify-center min-h-[200px] h-[58vh] overflow-hidden"> {/* Added overflow-hidden to prevent video from spilling out */}
+        {/* Video element */}
+        <video
+          src="/Touch_Kiosk_Intro.mp4" // Path to your video in the public folder
+          autoPlay // Autoplay the video
+          loop     // Loop the video
+          muted    // Mute the video by default (good practice for autoplay)
+          playsInline // Recommended for mobile to play within the element's playback area
+          className="w-full h-full object-fill rounded-xl m-4" // Ensures video covers the div, is responsive, and respects border-radius
+        >
+          Your browser does not support the video tag.
+        </video>
       </div>
 
       {/* Button container */}
