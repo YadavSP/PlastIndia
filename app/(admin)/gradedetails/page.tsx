@@ -8,7 +8,7 @@ export default function Dashboard() {
 
       {/* Heading */}
       <h1 className="text-3xl md:text-5xl font-bold text-white mb-8 text-center"> {/* Ensured text is centered and added responsive margin */}
-        Petrochemical Products Selector
+        Grade Details
       </h1>
 
       {/* Blurred glass effect container */}

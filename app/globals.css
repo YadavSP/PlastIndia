@@ -113,4 +113,22 @@ body {
   }
   
 }
+/* In your global.css or a dedicated CSS module */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 8px; /* For vertical scrollbars */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+    background: #2d3748; /* Tailwind gray-800 */
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+    background: #4a5568; /* Tailwind gray-700 */
+    border-radius: 10px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #6a7a91; /* Slightly lighter gray on hover */
+}
 
