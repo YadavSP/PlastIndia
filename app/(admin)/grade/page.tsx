@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react'; // Import useRef
 import { Beaker, Atom, Microscope, TestTube, Pipette, Flame, Ruler, FlaskConical, Lightbulb, Package, X, Factory, Box, Tags } from "lucide-react";
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useRouter } from 'next/navigation'; // Import useRouter
+import { useRouter } from 'next/navigation';
 
 interface Grade {
     PRODUCT_NAME: string;
@@ -24,10 +24,6 @@ const productIcons: { [key: string]: React.ElementType } = {
     // Add more product names and their corresponding icons
 };
 
-const polymerCardColors = [
-    "bg-gradient-to-br from-blue-500/10 to-purple-500/10", // Example gradient
-];
-
 const GradesPage = () => {
     const [grades, setGrades] = useState<Grade[]>([]);
     const [loading, setLoading] = useState(true);
@@ -36,11 +32,14 @@ const GradesPage = () => {
         interestArea: [],
         characteristics: []
     });
+    const [isInitialLoad, setIsInitialLoad] = useState(true); // Flag to track initial load
+    const isMounted = useRef(false); // Ref to track if component is mounted client-side
 
-    const router = useRouter(); // Initialize useRouter
+    const router = useRouter();
 
-    // Effect to initialize filters from URL on initial load
+    // Effect to initialize filters from URL on initial load (client-side only)
     useEffect(() => {
+        isMounted.current = true; // Mark component as mounted
         const { search } = window.location;
         const queryParams = new URLSearchParams(search);
         const area = queryParams.get('interest_Area') || '';
@@ -50,7 +49,13 @@ const GradesPage = () => {
             interestArea: area ? [area] : [],
             characteristics: chars ? [chars] : []
         });
-    }, []); // Empty dependency array means this runs only once on mount
+        setIsInitialLoad(false); // Filters have been set from URL
+        
+        // Cleanup function for unmount
+        return () => {
+            isMounted.current = false;
+        };
+    }, []); // Runs only once on client-side mount
 
     // Memoize the fetch function
     const fetchGrades = useCallback(async (interestArea: string[], characteristics: string[]) => {
@@ -61,26 +66,35 @@ const GradesPage = () => {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    interestArea: interestArea.join(','), // Join arrays for backend if needed, adjust API
-                    characteristics: characteristics.join(',') // Join arrays for backend if needed, adjust API
+                    interestArea: interestArea.join(','),
+                    characteristics: characteristics.join(',')
                 }),
             });
 
             if (!response.ok) throw new Error('Network response was not ok');
             const result: Grade[] = await response.json();
-            setGrades(result);
+            if (isMounted.current) { // Only update state if component is still mounted
+                setGrades(result);
+            }
         } catch (err) {
-            setError("Error fetching grades");
+            if (isMounted.current) {
+                setError("Error fetching grades");
+            }
             console.error(err);
         } finally {
-            setLoading(false);
+            if (isMounted.current) {
+                setLoading(false);
+            }
         }
-    }, []); // No dependencies for fetchGrades itself, as it uses arguments
+    }, []);
 
-    // Effect to call API whenever filters change
+    // Effect to call API whenever filters change, but only after initial load
+    // Effect to call API whenever filters change, but only after initial load
     useEffect(() => {
-        fetchGrades(filters.interestArea, filters.characteristics);
-        // Optionally update URL when filters change
+        if (isInitialLoad && (!filters.interestArea.length && !filters.characteristics.length)) {
+            return;
+        }
+        
         const newSearchParams = new URLSearchParams();
         if (filters.interestArea.length > 0) {
             newSearchParams.set('interest_Area', filters.interestArea.join(','));
@@ -88,10 +102,12 @@ const GradesPage = () => {
         if (filters.characteristics.length > 0) {
             newSearchParams.set('Characterestics', filters.characteristics.join(','));
         }
-        // Corrected line: Remove { shallow: true }
-        router.push(`?${newSearchParams.toString()}`);
+        // CORRECTED LINE: Removed { shallow: true }
+        router.replace(`?${newSearchParams.toString()}`); // Just call replace directly
 
-    }, [filters, fetchGrades, router]); // Re-run when filters or fetchGrades (though stable) or router changes
+        fetchGrades(filters.interestArea, filters.characteristics);
+
+    }, [filters, fetchGrades, router, isInitialLoad]);
 
     const removeFilter = (type: 'interestArea' | 'characteristics', value: string) => {
         setFilters(prev => {
@@ -99,14 +115,15 @@ const GradesPage = () => {
             newFilters[type] = newFilters[type].filter(item => item !== value);
             return newFilters;
         });
-        // The useEffect above will now detect this change and refetch data
     };
 
-    if (loading) return <div className="text-center py-20 text-xl font-semibold text-white">Loading Polymer Grades...</div>;
+    if (loading && isInitialLoad) return <div className="text-center py-20 text-xl font-semibold text-white">Loading Polymer Grades...</div>;
+    // Show a general loading message for subsequent fetches, but not the "initial" one
+    if (loading && !isInitialLoad) return <div className="text-center py-20 text-xl font-semibold text-white">Updating Polymer Grades...</div>;
     if (error) return <div className="text-center py-20 text-red-600 font-bold">Error: {error}</div>;
 
     return (
-        <div className="w-full max-w-7xl mx-auto p-4 md:p-2  text-white flex flex-col h-screen"> {/* Added h-screen, flex, flex-col */}
+        <div className="w-full max-w-7xl mx-auto p-4 md:p-2  text-white flex flex-col h-screen">
             <h1 className="text-3xl md:text-5xl font-extrabold mb-4 text-center tracking-tight text-transparent bg-clip-text text-white">
                 Matching Polymer Grades
             </h1>
@@ -115,7 +132,7 @@ const GradesPage = () => {
             </p>
 
             {/* Filter Pills */}
-            <div className="flex justify-center flex-wrap gap-3 mb-8 z-10 relative"> {/* z-10 and relative to ensure filters stay on top */}
+            <div className="flex justify-center flex-wrap gap-3 mb-8 z-10 relative">
                 {filters.interestArea.map(filter => (
                     <span
                         key={filter}
@@ -136,21 +153,16 @@ const GradesPage = () => {
                 ))}
             </div>
 
-            {/* Scrollable Container for the Grid of Cards */}
-            {/* This div will now handle the scrolling */}
             <div className="flex-grow overflow-y-auto pr-2 custom-scrollbar">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {grades.length > 0 ? (
                         grades.map((grade, index) => {
-                            const gradientClass = polymerCardColors[index % polymerCardColors.length];
+                           
                             const ProductIcon = productIcons[grade.PRODUCT_NAME] || Package;
 
                             return (
                                 <Card key={grade.GRADE_ID} className="overflow-hidden shadow-md bg-white">
-                                    {/* Header */}
-                                    <CardHeader
-                                        className="flex flex-row items-center justify-between"
-                                    >
+                                    <CardHeader className="flex flex-row items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <Badge className='bg-gradient-to-b from-[#E3CBBE] to-[#FFFFFF] border border-3 border-[#000000] text-white shadow-lg p-1 px-2'>
                                                 <ProductIcon className="h-6 w-6 text-black mr-2" />
@@ -158,105 +170,59 @@ const GradesPage = () => {
                                                     {grade.PRODUCT_NAME}
                                                 </span>
                                             </Badge>
-
-                                            {/* Gradient Badge */}
-                                            <Badge
-                                                className='bg-gradient-to-b from-[#E3CBBE] to-[#FFFFFF] border-1 border-[#000000] text-white shadow-lg'
-                                            >
+                                            <Badge className='bg-gradient-to-b from-[#E3CBBE] to-[#FFFFFF] border-1 border-[#000000] text-white shadow-lg'>
                                                 <span className="text-sm font-normal text-gray-900">
                                                     Grade ID –
-                                                    <Badge
-                                                        className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                                    >
+                                                    <Badge className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'>
                                                         <span className="text-sm font-normal text-gray-900">
                                                             {grade.GRADE_ID}
                                                         </span>
-
                                                     </Badge>
-
-
-
                                                 </span>
-
                                             </Badge>
                                         </div>
-
                                         <Button onClick={() => router.push(`/grade/${grade.GRADE_ID}`)}
                                             className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be] 
                  text-[#00164E] font-bold hover:opacity-90 rounded-full"
                                         >
                                             View Details
                                         </Button>
-
                                     </CardHeader>
-
-                                    {/* Content */}
                                     <CardContent className=" space-y-4">
-                                        {/* Property Badges */}
                                         <div className="flex flex-wrap gap-2">
-
-                                            <Badge
-                                                className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
-                                            >
+                                            <Badge className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'>
                                                 <span className="text-sm font-normal text-gray-900">
                                                     Sector –
-                                                    <Badge
-                                                        className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                                    >
+                                                    <Badge className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'>
                                                         <span className="text-sm font-normal text-gray-900">
                                                             {grade.SECTOR_NAME}
                                                         </span>
-
                                                     </Badge>
-
                                                 </span>
-
                                             </Badge>
-
-
-                                            <Badge
-                                                variant="secondary"
-                                                className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
-                                            >
+                                            <Badge variant="secondary" className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'>
                                                 <Ruler className="mr-1 h-4 w-4 text-pink-400" />
                                                 <span className="text-sm font-normal text-gray-900">
                                                     MFI –
                                                 </span>
-
-                                                <Badge
-                                                    className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                                >
+                                                <Badge className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'>
                                                     <span className="text-sm font-normal text-gray-900">
                                                         {grade.MFI}
                                                     </span>
-
                                                 </Badge>
-
                                             </Badge>
-                                            <Badge
-                                                variant="secondary"
-                                                className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
-                                            >
+                                            <Badge variant="secondary" className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'>
                                                 <Lightbulb className="mr-1 h-4 w-4 text-purple-400" />
                                                 <span className="text-sm font-normal text-gray-900">
                                                     Density –
                                                 </span>
-
-                                                <Badge
-                                                    className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
-                                                >
+                                                <Badge className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'>
                                                     <span className="text-sm font-normal text-gray-900">
                                                         {grade.DENSITY}
                                                     </span>
-
                                                 </Badge>
-
                                             </Badge>
-
-
                                         </div>
-
-                                        {/* Special Characteristics */}
                                         <div>
                                             <h3 className="flex items-center gap-2 font-semibold text-gray-800">
                                                 <Microscope className="h-5 w-5 text-purple-500" />
@@ -266,8 +232,6 @@ const GradesPage = () => {
                                                 {grade.SPECIAL_CHARACTERISTICS}
                                             </p>
                                         </div>
-
-                                        {/* Grade Application */}
                                         <div>
                                             <h3 className="flex items-center gap-2 font-semibold text-gray-800">
                                                 <Tags className="h-5 w-5 text-orange-500" />
@@ -279,7 +243,6 @@ const GradesPage = () => {
                                         </div>
                                     </CardContent>
                                 </Card>
-
                             );
                         })
                     ) : (
