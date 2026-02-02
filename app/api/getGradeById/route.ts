@@ -1,6 +1,7 @@
 // app/api/getGradeById/route.ts
 import { supabase } from '@/lib/mssqlconnectdb'; // Assuming you have this configured
 import { NextRequest, NextResponse } from 'next/server';
+export const dynamic = 'force-dynamic';
 
 export const GET = async (req: NextRequest) => {
   try {
