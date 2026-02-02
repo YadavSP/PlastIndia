@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { QRCodeSVG } from 'qrcode.react'; // You'll need to install this library
+import React from 'react';
 
 // Define the Grade interface (you can reuse the one from GradesPage)
 interface Grade {
@@ -23,8 +24,8 @@ interface Grade {
 // You'll need to install qrcode.react:
 // npm install qrcode.react
 
-const GradeDetailPage = ({ params }: { params: { gradeId: string } }) => {
-    const { gradeId } = params;
+const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) => {
+    const { gradeId } = React.use(params);
     const [grade, setGrade] = useState<Grade | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
