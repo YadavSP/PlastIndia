@@ -31,7 +31,7 @@ export const POST = async (req: NextRequest) => {
     const { data, error } = await query;
 
     if (error) throw error;
-
+console.log('Fetched grades data:', data);
     return NextResponse.json(data);
   } catch (error: any) {
     console.error('Supabase query failed', error);

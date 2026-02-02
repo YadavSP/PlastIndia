@@ -1,7 +1,5 @@
-// app/api/getGradeById/route.ts
 import { supabase } from '@/lib/mssqlconnectdb'; // Assuming you have this configured
 import { NextRequest, NextResponse } from 'next/server';
-
 
 export const GET = async (req: NextRequest) => {
   try {
@@ -21,8 +19,9 @@ export const GET = async (req: NextRequest) => {
         MFI:mfi, 
         DENSITY:density, 
         SPECIAL_CHARACTERISTICS:special_characteristics, 
-        GRADE_APPLICATION:grade_application
-      `)
+        GRADE_APPLICATION:grade_application,
+        tds_url 
+      `) // <--- Removed the comment from here!
       .eq('grade_id', gradeId) // Filter by grade_id
       .single(); // Expect a single result
 

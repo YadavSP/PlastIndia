@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from "@/components/ui/button"
 import {
   CardContent,
@@ -49,16 +49,33 @@ export default function Formpage() {
     control,
     watch,
     formState: { errors },
+    setValue,
   } = form
 
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [selectedInputValue, setSelectedInputValue] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const suggestionsContainerRef = useRef<HTMLDivElement>(null); // New ref for the whole suggestion component area
 
   const interestAreaValue = watch("interest_Area")
 
-  /* ---------------- Suggestions ---------------- */
-
+  /* ---------------- Suggestions Fetching Logic ---------------- */
   useEffect(() => {
+    // If the current input value matches the explicitly selected value,
+    // or if the input is too short, clear suggestions and do not fetch.
+    if (interestAreaValue === selectedInputValue || !interestAreaValue || interestAreaValue.length < 3) {
+      setSuggestions([]);
+      setLoadingSuggestions(false);
+      return;
+    }
+
+    // If the user starts typing something new, clear any previous selectedInputValue
+    // but only if the interestAreaValue is not empty and doesn't match the selected one
+    if (interestAreaValue !== selectedInputValue && selectedInputValue !== null) {
+        setSelectedInputValue(null);
+    }
+
     const timer = setTimeout(() => {
       if (interestAreaValue && interestAreaValue.length >= 3) {
         fetchSuggestions(interestAreaValue)
@@ -68,7 +85,7 @@ export default function Formpage() {
     }, 500)
 
     return () => clearTimeout(timer)
-  }, [interestAreaValue])
+  }, [interestAreaValue, selectedInputValue])
 
   const fetchSuggestions = async (query: string) => {
     setLoadingSuggestions(true)
@@ -85,8 +102,26 @@ export default function Formpage() {
     }
   }
 
-  /* ---------------- Submit ---------------- */
+  /* ---------------- Click Outside Logic ---------------- */
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Check if the click was outside the suggestions container
+      // This ref now encompasses both the input and the suggestion list
+      if (suggestionsContainerRef.current && !suggestionsContainerRef.current.contains(event.target as Node)) {
+        setSuggestions([]); // Hide suggestions
+        // Optionally, reset selectedInputValue if you want suggestions to reappear
+        // if user clicks back into the field without changing text.
+        // setSelectedInputValue(null); // Uncomment if this behavior is desired
+      }
+    };
 
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [suggestionsContainerRef]); // Add ref to dependencies
+
+  /* ---------------- Submit ---------------- */
   const onSubmit = async (values: FormValues) => {
     const toastId = toast.loading("Submitting form...", {
       description: "Please wait",
@@ -123,9 +158,11 @@ export default function Formpage() {
   }
 
   const handleSuggestionClick = (value: string) => {
-    form.setValue("interest_Area", value)
-    setSuggestions([])
-    toast.info("Suggestion selected")
+    setValue("interest_Area", value, { shouldValidate: true });
+    setSelectedInputValue(value);
+    setSuggestions([]); // Clear suggestions immediately
+    inputRef.current?.blur(); // Blur the input field
+    toast.info("Suggestion selected");
   }
 
   /* ---------------- UI ---------------- */
@@ -254,13 +291,15 @@ export default function Formpage() {
                 control={control}
                 name="interest_Area"
                 render={({ field }) => (
-                  <FormItem className="relative">
+                  // Assign the new ref to the wrapping FormItem
+                  <FormItem className="relative" ref={suggestionsContainerRef}>
                     <FormLabel className="text-white text-lg font-medium">
                       Products / Application
                     </FormLabel>
                     <FormControl>
                       <Input
                         {...field}
+                        ref={inputRef}
                         placeholder="Furniture, Toys, Packaging etc."
                         className="h-14 text-lg"
                       />
@@ -270,7 +309,7 @@ export default function Formpage() {
                       <p className="text-blue-500 text-sm mt-1">Searching...</p>
                     )}
 
-                    {suggestions.length > 0 && (
+                    {suggestions.length > 0 && interestAreaValue !== selectedInputValue && (
                       <ul className="absolute z-50 bg-white border w-full rounded shadow mt-1">
                         {suggestions.map((s, i) => (
                           <li
@@ -289,39 +328,37 @@ export default function Formpage() {
 
             </CardContent>
 
-            <CardFooter className="mt-8 flex justify-center gap-6">
-  {/* Back Button */}
-  <Link href="/form">
-    <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
-  w-[220px] md:w-[300px]
-  h-[70px] md:h-[96px]
-  flex items-center justify-center
-  rounded-[20px]
-  shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
-  cursor-pointer">
+             <CardFooter className="mt-8 flex justify-center gap-6">
+                {/* Back Button */}
+                <Link href="/"> {/* Changed href from "/form" to "/" */}
+                    <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
+                        w-[220px] md:w-[300px]
+                        h-[70px] md:h-[96px]
+                        flex items-center justify-center
+                        rounded-[20px]
+                        shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
+                        cursor-pointer">
+                        <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
+                            Back
+                        </p>
+                    </div>
+                </Link>
 
-      <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
-        Back
-      </p>
-    </div>
-  </Link>
-
-  {/* Submit Button */}
-  <button type="submit">
-    <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
-  w-[220px] md:w-[300px]
-  h-[70px] md:h-[96px]
-  flex items-center justify-center
-  rounded-[20px]
-  shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
-  cursor-pointer">
-
-      <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
-        Submit
-      </p>
-    </div>
-  </button>
-</CardFooter>
+                {/* Submit Button */}
+                <button type="submit">
+                    <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
+                        w-[220px] md:w-[300px]
+                        h-[70px] md:h-[96px]
+                        flex items-center justify-center
+                        rounded-[20px]
+                        shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
+                        cursor-pointer">
+                        <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
+                            Submit
+                        </p>
+                    </div>
+                </button>
+            </CardFooter>
 
           </div>
         </form>

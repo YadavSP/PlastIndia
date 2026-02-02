@@ -1,4 +1,3 @@
-// app/grades/[gradeId]/page.tsx
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -7,10 +6,10 @@ import { QrCode, Download, Home, ArrowLeft, Lightbulb, Ruler, Microscope, Tags }
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { QRCodeSVG } from 'qrcode.react'; // You'll need to install this library
+import { QRCodeSVG } from 'qrcode.react';
 import React from 'react';
 
-// Define the Grade interface (you can reuse the one from GradesPage)
+// Define the Grade interface (updated to include tds_url)
 interface Grade {
     PRODUCT_NAME: string;
     SECTOR_NAME: string;
@@ -19,10 +18,8 @@ interface Grade {
     DENSITY: string;
     SPECIAL_CHARACTERISTICS: string;
     GRADE_APPLICATION: string;
+    tds_url?: string; // Add tds_url here, make it optional if it might not always be present
 }
-
-// You'll need to install qrcode.react:
-// npm install qrcode.react
 
 const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) => {
     const { gradeId } = React.use(params);
@@ -39,7 +36,6 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
             setError(null);
             console.log('Fetching details for gradeId:', gradeId);
             try {
-                // You'll need a new API endpoint to fetch a single grade by ID
                 const response = await fetch(`/api/getGradeById?gradeId=${gradeId}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result: Grade = await response.json();
@@ -59,32 +55,24 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
     if (error) return <div className="text-center py-20 text-red-600 font-bold">Error: {error}</div>;
     if (!grade) return <div className="text-center py-20 text-xl font-semibold text-white">Grade not found.</div>;
 
-    // Dummy URL for QR code - replace with your actual download link
-    const downloadLink = `https://yourdomain.com/downloads/${grade.GRADE_ID}-brochure.pdf`;
+    // Use the fetched tds_url for the download link, with a fallback if it's not present
+    const downloadLink = grade.tds_url || `https://yourdomain.com/downloads/${grade.GRADE_ID}-brochure.pdf`;
+
 
     return (
-
-        <div className="relative flex flex-col items-center justify-center  p-4"> {/* Added items-center, min-h-screen, and p-4 for overall centering and responsiveness */}
-
-            {/* Heading */}
-            <h1 className="text-3xl md:text-5xl font-bold text-white mb-8 text-center"> {/* Ensured text is centered and added responsive margin */}
+        <div className="relative flex flex-col items-center justify-center  p-4">
+            <h1 className="text-3xl md:text-5xl font-bold text-white mb-8 text-center">
                 Grade Details
             </h1>
-
-            {/* Blurred glass effect container */}
             <div className="
-  w-full max-w-6xl
-  bg-white bg-opacity-30 backdrop-blur-lg
-  rounded-2xl shadow-2xl
-  relative z-10
-  p-4 md:p-8 lg:p-12
-  border border-white border-opacity-20
-">
-
-                {/* Example content inside the glass effect, which will now be centered */}
-
+                w-full max-w-6xl
+                bg-white bg-opacity-30 backdrop-blur-lg
+                rounded-2xl shadow-2xl
+                relative z-10
+                p-4 md:p-8 lg:p-12
+                border border-white border-opacity-20
+            ">
                 <div className="relative m-4 flex flex-col lg:flex-row  rounded-lg shadow-2xl overflow-hidden bg-white bg-opacity-30 backdrop-blur-lg ">
-                    {/* Left Section - Grade Details */}
                     <div className="lg:w-2/3 p-4 bg-white items-center ">
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
@@ -106,7 +94,6 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
 
                         <div className="grid grid-cols-1  gap-4 mt-8 mb-8">
                             <div className="flex flex-wrap gap-2">
-
                                 <Badge
                                     className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
                                 >
@@ -118,14 +105,9 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                                             <span className="text-sm font-normal text-gray-900">
                                                 {grade.SECTOR_NAME}
                                             </span>
-
                                         </Badge>
-
                                     </span>
-
                                 </Badge>
-
-
                                 <Badge
                                     variant="secondary"
                                     className='bg-gradient-to-b from-[#C5D5FF] to-[#EBF1FF] border-1 border-[#000000] text-white shadow-lg'
@@ -134,16 +116,13 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                                     <span className="text-sm font-normal text-gray-900">
                                         MFI –
                                     </span>
-
                                     <Badge
                                         className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
                                     >
                                         <span className="text-sm font-normal text-gray-900">
                                             {grade.MFI}
                                         </span>
-
                                     </Badge>
-
                                 </Badge>
                                 <Badge
                                     variant="secondary"
@@ -153,21 +132,15 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                                     <span className="text-sm font-normal text-gray-900">
                                         Density –
                                     </span>
-
                                     <Badge
                                         className='bg-white border-1 border-[#000000] text-black shadow-lg m-1'
                                     >
                                         <span className="text-sm font-normal text-gray-900">
                                             {grade.DENSITY}
                                         </span>
-
                                     </Badge>
-
                                 </Badge>
-
-
                             </div>
-
                         </div>
                         <div className='h-0.5 bg-[#002480]'>
                         </div>
@@ -184,7 +157,6 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                         <div className='h-0.5 bg-[#002480]'>
                         </div>
 
-                        {/* Grade Application */}
                         <div>
                             <h3 className="flex items-center gap-2 font-semibold text-gray-800 mt-8 mb-8">
                                 <Tags className="h-5 w-5 text-orange-500" />
@@ -197,7 +169,7 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                          <div className='h-0.5 bg-[#002480]'>
                         </div>
 
-                        <div className="flex justify-center gap-6 pt-4"> {/* Changed to justify-start and adjusted padding */}
+                        <div className="flex justify-center gap-6 pt-4">
                             <Button
                                 onClick={() => router.push('/')}
                                 className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be] text-[#00164E] font-bold hover:opacity-90 rounded-full flex items-center px-6"
@@ -212,14 +184,11 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Results
                             </Button>
                         </div>
-
                     </div>
 
-                    {/* Right Section - QR Code */}
                     <div className="lg:w-1/3 bg-gradient-to-br from-orange-400 to-red-500 p-8 flex flex-col items-center justify-center text-white text-center">
-                        <h2 className="text-2xl font-bold mb-6">Scan to download brochure + grade sheet</h2>
+                        <h2 className="text-2xl font-bold mb-6">Scan to download TDS</h2>
                         <div className="bg-white p-4 rounded-lg shadow-lg mb-6">
-                            {/* QR Code component */}
                             <QRCodeSVG value={downloadLink} size={180} level="H" />
                         </div>
                         <p className="text-sm mb-4">Open camera and scan the QR</p>
