@@ -1,15 +1,16 @@
-'use client';
+// app/grade/[gradeId]/page.tsx
+'use client'; // This directive is crucial for client components
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { QrCode, Download, Home, ArrowLeft, Lightbulb, Ruler, Microscope, Tags } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { QRCodeSVG } from 'qrcode.react';
+import { toast } from 'sonner';
 import React from 'react';
 
-// Define the Grade interface (updated to include tds_url)
 interface Grade {
     PRODUCT_NAME: string;
     SECTOR_NAME: string;
@@ -18,44 +19,97 @@ interface Grade {
     DENSITY: string;
     SPECIAL_CHARACTERISTICS: string;
     GRADE_APPLICATION: string;
-    tds_url?: string; // Add tds_url here, make it optional if it might not always be present
+    tds_url?: string;
 }
 
-const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) => {
-    const { gradeId } = React.use(params);
+// Ensure this component is a client component by accepting props directly, not a Promise
+const GradeDetailPage =  ({ params }: { params: Promise<{ gradeId: string }> }) => {
+    const { gradeId } = React.use(params); // Access gradeId directly, no React.use(params) needed for client components
     const [grade, setGrade] = useState<Grade | null>(null);
-    const [loading, setLoading] = useState(true);
+    const [loadingDetails, setLoadingDetails] = useState(true); // Renamed for clarity
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
+    // Memoize the email sending logic
+    const sendTdsEmail = useCallback(async (currentGradeId: string) => {
+        let userEmail: string | null = null;
+        let userName: string | null = null;
+
+        if (typeof window !== 'undefined') { // Ensure running in browser
+            userEmail = sessionStorage.getItem('userEmail');
+            userName = sessionStorage.getItem('userName');
+        }
+
+        if (!userEmail) {
+            toast.warning("Could not send email: User email not found in session. Please fill out the form first.", { id: "send-email-toast", duration: 5000 });
+            return;
+        }
+
+        toast.info("Sending TDS to your email...", { id: "send-email-toast", duration: 0 }); // duration: 0 makes it sticky until dismissed
+
+        try {
+            const emailResponse = await fetch('/api/send-tds-email', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gradeId: currentGradeId, userEmail, userName }),
+            });
+
+            if (!emailResponse.ok) {
+                const errorData = await emailResponse.json();
+                throw new Error(errorData.details || 'Failed to send email with TDS.');
+            }
+            toast.success("TDS sent to your email successfully!", { id: "send-email-toast" });
+
+            // Optional: Clear sessionStorage after successful email send if desired for a single send
+            // sessionStorage.removeItem('userEmail');
+            // sessionStorage.removeItem('userName');
+
+        } catch (err: any) {
+            console.error("Error sending email with TDS:", err);
+            toast.error(`Error sending email: ${err.message || "Something went wrong."}`, { id: "send-email-toast" });
+        }
+    }, []); // Empty dependency array as userEmail/userName are read directly and gradeId is passed as arg
+
+    // Effect for fetching grade details
     useEffect(() => {
         if (!gradeId) return;
 
         const fetchGradeDetails = async () => {
-            setLoading(true);
+            setLoadingDetails(true);
             setError(null);
-            console.log('Fetching details for gradeId:', gradeId);
+            console.log('Fetching grade details:', gradeId);
             try {
                 const response = await fetch(`/api/getGradeById?gradeId=${gradeId}`);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const result: Grade = await response.json();
+                console.log('Fetched grade details:', result);
                 setGrade(result);
-            } catch (err) {
-                setError("Error fetching grade details");
+            } catch (err: any) {
+                setError("Error fetching grade details.");
                 console.error(err);
+                toast.error(`Error loading grade details: ${err.message || "Something went wrong."}`, { id: "grade-details-toast" });
             } finally {
-                setLoading(false);
+                setLoadingDetails(false);
             }
         };
 
         fetchGradeDetails();
-    }, [gradeId]);
+    }, [gradeId]); // Depend on gradeId
 
-    if (loading) return <div className="text-center py-20 text-xl font-semibold text-white">Loading Grade Details...</div>;
+    // Effect for triggering email send (separately and non-blocking)
+    useEffect(() => {
+        // Only attempt to send email once details are loaded and gradeId is available
+        // We ensure grade is not null before attempting to send email by checking loadingDetails
+        if (gradeId && !loadingDetails) {
+            // We don't await this, it runs in the background
+            sendTdsEmail(gradeId);
+        }
+    }, [gradeId, loadingDetails, sendTdsEmail]); // Depend on gradeId, loadingDetails state, and the memoized sender
+
+    if (loadingDetails) return <div className="text-center py-20 text-xl font-semibold text-white">Loading Grade Details...</div>;
     if (error) return <div className="text-center py-20 text-red-600 font-bold">Error: {error}</div>;
     if (!grade) return <div className="text-center py-20 text-xl font-semibold text-white">Grade not found.</div>;
 
-    // Use the fetched tds_url for the download link, with a fallback if it's not present
     const downloadLink = grade.tds_url || `https://yourdomain.com/downloads/${grade.GRADE_ID}-brochure.pdf`;
 
 
@@ -77,7 +131,7 @@ const GradeDetailPage =  ({ params }: { params: Promise<{gradeId: string }> }) =
                         <div className="flex items-center justify-between mb-6">
                             <div className="flex items-center gap-3">
                                 <Badge className='bg-gradient-to-b from-[#E3CBBE] to-[#FFFFFF] border border-3 border-[#000000] text-black shadow-lg p-1 px-2'>
-                                    <span className="text-sm font-normal text-gray-900">HDPE</span>
+                                    <span className="text-sm font-normal text-gray-900">{grade.PRODUCT_NAME}</span>
                                 </Badge>
                                 <Badge className='bg-gradient-to-b from-[#E3CBBE] to-[#FFFFFF] border-1 border-[#000000] text-black shadow-lg'>
                                     <span className="text-sm font-normal text-gray-900">

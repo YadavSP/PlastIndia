@@ -1,3 +1,4 @@
+// app/formpage.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -45,6 +46,16 @@ export default function Formpage() {
     mode: "onSubmit",
   })
 
+  // --- NEW: Clear sessionStorage on component mount ---
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('userName');
+      console.log('sessionStorage cleared on Formpage load.'); // For debugging
+    }
+  }, []); // Run only once on mount
+  // --- END NEW ---
+
   const {
     control,
     watch,
@@ -52,26 +63,22 @@ export default function Formpage() {
     setValue,
   } = form
 
+  // Ensure suggestions state stores the full concatenated string
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [selectedInputValue, setSelectedInputValue] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const suggestionsContainerRef = useRef<HTMLDivElement>(null); // New ref for the whole suggestion component area
+  const suggestionsContainerRef = useRef<HTMLDivElement>(null);
 
   const interestAreaValue = watch("interest_Area")
 
-  /* ---------------- Suggestions Fetching Logic ---------------- */
   useEffect(() => {
-    // If the current input value matches the explicitly selected value,
-    // or if the input is too short, clear suggestions and do not fetch.
     if (interestAreaValue === selectedInputValue || !interestAreaValue || interestAreaValue.length < 3) {
       setSuggestions([]);
       setLoadingSuggestions(false);
       return;
     }
 
-    // If the user starts typing something new, clear any previous selectedInputValue
-    // but only if the interestAreaValue is not empty and doesn't match the selected one
     if (interestAreaValue !== selectedInputValue && selectedInputValue !== null) {
         setSelectedInputValue(null);
     }
@@ -94,7 +101,7 @@ export default function Formpage() {
         `/api/getSuggestions?query=${encodeURIComponent(query)}`
       )
       const data = await response.json()
-      setSuggestions(data)
+      setSuggestions(data) // `data` should already be the concatenated strings
     } catch {
       toast.error("Failed to fetch suggestions")
     } finally {
@@ -102,16 +109,10 @@ export default function Formpage() {
     }
   }
 
-  /* ---------------- Click Outside Logic ---------------- */
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Check if the click was outside the suggestions container
-      // This ref now encompasses both the input and the suggestion list
       if (suggestionsContainerRef.current && !suggestionsContainerRef.current.contains(event.target as Node)) {
-        setSuggestions([]); // Hide suggestions
-        // Optionally, reset selectedInputValue if you want suggestions to reappear
-        // if user clicks back into the field without changing text.
-        // setSelectedInputValue(null); // Uncomment if this behavior is desired
+        setSuggestions([]);
       }
     };
 
@@ -119,9 +120,19 @@ export default function Formpage() {
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [suggestionsContainerRef]); // Add ref to dependencies
+  }, [suggestionsContainerRef]);
 
-  /* ---------------- Submit ---------------- */
+  // Helper function to extract grade_application from the concatenated string
+  const extractGradeApplication = (suggestion: string): string => {
+    const parts = suggestion.split(' - ');
+    // The grade_application is expected to be the last part of the concatenated string
+    // You might need to adjust this logic if your concatenation format changes
+    if (parts.length > 0) {
+      return parts[parts.length - 1].trim();
+    }
+    return suggestion; // Fallback to the full string if parsing fails
+  };
+
   const onSubmit = async (values: FormValues) => {
     const toastId = toast.loading("Submitting form...", {
       description: "Please wait",
@@ -137,12 +148,22 @@ export default function Formpage() {
         throw new Error("Submission failed")
       }
 
+      // Store new email and name in sessionStorage
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('userEmail', values.email);
+        sessionStorage.setItem('userName', values.name);
+        console.log('New user email and name stored in sessionStorage:', values.email, values.name); // For debugging
+      }
+
       toast.success("Form submitted successfully", {
         description: "Redirecting...",
       })
 
+      // NEW: Extract only the grade_application part from values.interest_Area
+      const gradeApplicationToSend = extractGradeApplication(values.interest_Area);
+
       const query = new URLSearchParams({
-        interest_Area: values.interest_Area,
+        interest_Area: gradeApplicationToSend, // Pass only the extracted part
         Characterestics: values.Characterestics,
       }).toString()
 
@@ -160,12 +181,10 @@ export default function Formpage() {
   const handleSuggestionClick = (value: string) => {
     setValue("interest_Area", value, { shouldValidate: true });
     setSelectedInputValue(value);
-    setSuggestions([]); // Clear suggestions immediately
-    inputRef.current?.blur(); // Blur the input field
+    setSuggestions([]);
+    inputRef.current?.blur();
     toast.info("Suggestion selected");
   }
-
-  /* ---------------- UI ---------------- */
 
   return (
     <div className="mt-8">
@@ -291,7 +310,6 @@ export default function Formpage() {
                 control={control}
                 name="interest_Area"
                 render={({ field }) => (
-                  // Assign the new ref to the wrapping FormItem
                   <FormItem className="relative" ref={suggestionsContainerRef}>
                     <FormLabel className="text-white text-lg font-medium">
                       Products / Application
@@ -330,7 +348,7 @@ export default function Formpage() {
 
              <CardFooter className="mt-8 flex justify-center gap-6">
                 {/* Back Button */}
-                <Link href="/"> {/* Changed href from "/form" to "/" */}
+                <Link href="/">
                     <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
                         w-[220px] md:w-[300px]
                         h-[70px] md:h-[96px]
