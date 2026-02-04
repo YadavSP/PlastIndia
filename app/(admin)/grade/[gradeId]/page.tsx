@@ -21,8 +21,8 @@ interface Grade {
     tds_url?: string;
 }
 
-const GradeDetailPage = ({ params }: { params: { gradeId: string } }) => {
-    const { gradeId } = params;
+const GradeDetailPage = ({ params }: { params: Promise< { gradeId: string } >}) => {
+    const { gradeId } = React.use(params);
     const [grade, setGrade] = useState<Grade | null>(null);
     const [loadingDetails, setLoadingDetails] = useState(true);
     const [error, setError] = useState<string | null>(null);
