@@ -31,15 +31,40 @@ export default function Dashboard() {
       </div>
 
       {/* Button container */}
-      <div className="mt-8 md:mt-12 flex justify-center"> {/* Centered the button container with flex and responsive margin-top */}
-        <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be] h-[70px] md:h-[96px] items-center justify-center px-[24px] md:px-[32px] py-[16px] md:py-[24px] relative rounded-[20px] shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)] flex shrink-0" data-name="Button"> {/* Made button responsive in height and padding */}
-          <Link href="/form">
-            <p className="font-['Inter:Bold',sans-serif] font-bold leading-[24px] md:leading-[28px] not-italic relative text-[#002480] text-[24px] md:text-[32px]"> {/* Made button text responsive in size and line-height */}
-              Tap to Begin
-            </p>
-          </Link>
-        </div>
-      </div>
+        {/* Button container */}
+      <div
+  className="
+    bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
+    hover:from-[#ff5a00] hover:to-[#ffb48a]
+    mt-8 md:mt-12 flex justify-center
+   
+    items-center justify-center
+    px-[24px] md:px-[32px]
+    py-[16px] md:py-[24px]
+
+    relative rounded-[20px]
+    
+    hover:border-[#001a66]
+
+    shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
+    hover:shadow-[0px_0px_35px_0px_rgba(0,0,0,0.25)]
+
+    flex shrink-0
+    transition-all duration-300 ease-out
+    hover:scale-105
+    active:scale-100
+
+    cursor-pointer
+  "
+  data-name="Button"
+>
+  <Link href="/form">
+    <p className="font-bold leading-[24px] md:leading-[28px] text-[#002480] text-[24px] md:text-[32px]">
+      Tap to Begin
+    </p>
+  </Link>
+</div>
+
     </div>
   );
 }

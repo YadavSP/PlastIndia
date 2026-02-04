@@ -1,4 +1,3 @@
-// app/formpage.tsx
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -46,15 +45,16 @@ export default function Formpage() {
     mode: "onSubmit",
   })
 
-  // --- NEW: Clear sessionStorage on component mount ---
+  // State to track if the form has been successfully submitted
+  const [isSubmitted, setIsSubmitted] = useState(false);
+
   useEffect(() => {
     if (typeof window !== 'undefined') {
       sessionStorage.removeItem('userEmail');
       sessionStorage.removeItem('userName');
-      console.log('sessionStorage cleared on Formpage load.'); // For debugging
+      console.log('sessionStorage cleared on Formpage load.');
     }
-  }, []); // Run only once on mount
-  // --- END NEW ---
+  }, []);
 
   const {
     control,
@@ -63,7 +63,6 @@ export default function Formpage() {
     setValue,
   } = form
 
-  // Ensure suggestions state stores the full concatenated string
   const [suggestions, setSuggestions] = useState<string[]>([])
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [selectedInputValue, setSelectedInputValue] = useState<string | null>(null);
@@ -101,11 +100,11 @@ export default function Formpage() {
         `/api/getSuggestions?query=${encodeURIComponent(query)}`
       )
       const data = await response.json()
-      setSuggestions(data) // `data` should already be the concatenated strings
+      setSuggestions(data)
     } catch {
       toast.error("Failed to fetch suggestions")
     } finally {
-      setLoadingSuggestions(false)
+      toast.dismiss(toast.loading("Failed to fetch suggestions"))
     }
   }
 
@@ -122,15 +121,12 @@ export default function Formpage() {
     };
   }, [suggestionsContainerRef]);
 
-  // Helper function to extract grade_application from the concatenated string
   const extractGradeApplication = (suggestion: string): string => {
     const parts = suggestion.split(' - ');
-    // The grade_application is expected to be the last part of the concatenated string
-    // You might need to adjust this logic if your concatenation format changes
     if (parts.length > 0) {
       return parts[parts.length - 1].trim();
     }
-    return suggestion; // Fallback to the full string if parsing fails
+    return suggestion;
   };
 
   const onSubmit = async (values: FormValues) => {
@@ -148,26 +144,30 @@ export default function Formpage() {
         throw new Error("Submission failed")
       }
 
-      // Store new email and name in sessionStorage
       if (typeof window !== 'undefined') {
         sessionStorage.setItem('userEmail', values.email);
         sessionStorage.setItem('userName', values.name);
-        console.log('New user email and name stored in sessionStorage:', values.email, values.name); // For debugging
+        console.log('New user email and name stored in sessionStorage:', values.email, values.name);
       }
 
       toast.success("Form submitted successfully", {
         description: "Redirecting...",
       })
 
-      // NEW: Extract only the grade_application part from values.interest_Area
+      // Set isSubmitted to true on successful submission
+      setIsSubmitted(true);
+
       const gradeApplicationToSend = extractGradeApplication(values.interest_Area);
 
       const query = new URLSearchParams({
-        interest_Area: gradeApplicationToSend, // Pass only the extracted part
+        interest_Area: gradeApplicationToSend,
         Characterestics: values.Characterestics,
       }).toString()
 
-      router.replace(`/grade?${query}`)
+      // Redirect after a short delay to allow the user to see the button change
+      setTimeout(() => {
+        router.replace(`/grade?${query}`)
+      }, 500); // 0.5 second delay
 
     } catch (error: any) {
       toast.error("Submission failed", {
@@ -187,7 +187,7 @@ export default function Formpage() {
   }
 
   return (
-    <div className="mt-8">
+    <div className="flex flex-col min-h-screen justify-end">
       <FormProvider {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit, () => {
@@ -290,7 +290,7 @@ export default function Formpage() {
                         <FormControl>
                           <Input
                             {...field}
-                            type="email"
+                            type="text"
                             placeholder="example@company.com"
                             className={clsx(
                               "h-14 text-lg",
@@ -355,7 +355,9 @@ export default function Formpage() {
                         flex items-center justify-center
                         rounded-[20px]
                         shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
-                        cursor-pointer">
+                        cursor-pointer
+                        transition-all duration-300 ease-in-out hover:scale-105 hover:shadow-lg
+                        hover:border-2 hover:border-[#002480]">
                         <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
                             Back
                         </p>
@@ -363,15 +365,19 @@ export default function Formpage() {
                 </Link>
 
                 {/* Submit Button */}
-                <button type="submit">
-                    <div className="bg-gradient-to-b from-[#f36f21] to-[#ffd6be]
-                        w-[220px] md:w-[300px]
-                        h-[70px] md:h-[96px]
-                        flex items-center justify-center
-                        rounded-[20px]
-                        shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)]
-                        cursor-pointer">
-                        <p className="font-bold text-[#002480] text-[24px] md:text-[32px]">
+                <button type="submit" disabled={isSubmitted}> {/* Disable button after submission */}
+                    <div className={clsx(
+                        "w-[220px] md:w-[300px] h-[70px] md:h-[96px] flex items-center justify-center rounded-[20px]",
+                        "shadow-[0px_0px_24px_0px_rgba(0,0,0,0.14)] cursor-pointer transition-all duration-300 ease-in-out",
+                        "", // Default border for consistency
+                        isSubmitted
+                          ? "bg-[#E5E0E0] hover:scale-100 hover:shadow-lg hover:border-transparent" // Submitted state styles
+                          : "bg-gradient-to-b from-[#f36f21] to-[#ffd6be] hover:scale-105 hover:shadow-lg hover:border-2 hover:border-[#002480]" // Default/hover styles
+                    )}>
+                        <p className={clsx(
+                            "font-bold text-[24px] md:text-[32px]",
+                            isSubmitted ? "text-white" : "text-[#002480]"
+                        )}>
                             Submit
                         </p>
                     </div>
