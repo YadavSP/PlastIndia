@@ -1,9 +1,8 @@
-// app/grade/[gradeId]/page.tsx
 'use client'; // This directive is crucial for client components
 
 import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { QrCode, Download, Home, ArrowLeft, Lightbulb, Ruler, Microscope, Tags } from 'lucide-react';
+import { QrCode, Download, Home, ArrowLeft, Lightbulb, Ruler, Microscope, Tags, Mail } from 'lucide-react'; // Added Mail icon
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -22,30 +21,29 @@ interface Grade {
     tds_url?: string;
 }
 
-// Ensure this component is a client component by accepting props directly, not a Promise
-const GradeDetailPage =  ({ params }: { params: Promise<{ gradeId: string }> }) => {
-    const { gradeId } = React.use(params); // Access gradeId directly, no React.use(params) needed for client components
+const GradeDetailPage = ({ params }: { params: Promise<{ gradeId: string }> }) => { // Changed type to directly get gradeId
+    const { gradeId } = React.use(params);
     const [grade, setGrade] = useState<Grade | null>(null);
-    const [loadingDetails, setLoadingDetails] = useState(true); // Renamed for clarity
+    const [loadingDetails, setLoadingDetails] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const router = useRouter();
 
-    // Memoize the email sending logic
+    // Memoize the email sending logic (BACKEND API CALL)
     const sendTdsEmail = useCallback(async (currentGradeId: string) => {
         let userEmail: string | null = null;
         let userName: string | null = null;
 
-        if (typeof window !== 'undefined') { // Ensure running in browser
+        if (typeof window !== 'undefined') {
             userEmail = sessionStorage.getItem('userEmail');
             userName = sessionStorage.getItem('userName');
         }
 
         if (!userEmail) {
-            toast.warning("Could not send email: User email not found in session. Please fill out the form first.", { id: "send-email-toast", duration: 5000 });
+            toast.warning("Could not send email (Backend): User email not found. Please fill out the form.", { id: "send-email-backend-toast", duration: 5000 });
             return;
         }
 
-        toast.info("Sending TDS to your email...", { id: "send-email-toast", duration: 0 }); // duration: 0 makes it sticky until dismissed
+        toast.info("Sending TDS to your email via Backend...", { id: "send-email-backend-toast", duration: 0 });
 
         try {
             const emailResponse = await fetch('/api/send-tds-email', {
@@ -56,19 +54,131 @@ const GradeDetailPage =  ({ params }: { params: Promise<{ gradeId: string }> }) 
 
             if (!emailResponse.ok) {
                 const errorData = await emailResponse.json();
-                throw new Error(errorData.details || 'Failed to send email with TDS.');
+                throw new Error(errorData.details || 'Failed to send email via Backend.');
             }
-            toast.success("TDS sent to your email successfully!", { id: "send-email-toast" });
-
-            // Optional: Clear sessionStorage after successful email send if desired for a single send
-            // sessionStorage.removeItem('userEmail');
-            // sessionStorage.removeItem('userName');
+            toast.success("TDS sent to your email via Backend successfully!", { id: "send-email-backend-toast" });
 
         } catch (err: any) {
-            console.error("Error sending email with TDS:", err);
-            toast.error(`Error sending email: ${err.message || "Something went wrong."}`, { id: "send-email-toast" });
+            console.error("Error sending email with TDS via Backend:", err);
+            toast.error(`Error sending email (Backend): ${err.message || "Something went wrong."}`, { id: "send-email-backend-toast" });
         }
-    }, []); // Empty dependency array as userEmail/userName are read directly and gradeId is passed as arg
+    }, []);
+
+    // NEW: Function to send email directly from the frontend
+    const sendTdsEmailDirectlyFromFrontend = useCallback(async () => {
+        if (!grade) {
+            toast.error("Grade details not loaded yet. Please wait.", { id: "send-email-frontend-toast" });
+            return;
+        }
+
+        let userEmail: string | null = null;
+        let userName: string | null = null;
+
+        if (typeof window !== 'undefined') {
+            userEmail = sessionStorage.getItem('userEmail');
+            userName = sessionStorage.getItem('userName');
+        }
+
+        if (!userEmail) {
+            toast.warning("Could not send email (Frontend): User email not found. Please fill out the form.", { id: "send-email-frontend-toast", duration: 5000 });
+            return;
+        }
+
+        toast.info("Sending TDS to your email directly from Frontend...", { id: "send-email-frontend-toast", duration: 0 });
+
+        try {
+            const tdsUrl = grade.tds_url;
+            const productName = grade.PRODUCT_NAME;
+            const fetchedGradeId = grade.GRADE_ID;
+
+            if (!tdsUrl) {
+                toast.error("TDS URL not available for this grade.", { id: "send-email-frontend-toast" });
+                return;
+            }
+
+            // --- Step 1: Download PDF (requires a proxy or backend if CORS is an issue for direct download) ---
+            // For a direct frontend call to external email API with attachment,
+            // you'd typically need to fetch the PDF on the frontend and convert it to base64.
+            // This might hit CORS issues depending on where the TDS is hosted.
+            // A more robust solution for frontend direct mail with attachments often involves:
+            // 1. A CORS-friendly proxy on your Next.js backend for fetching the PDF, or
+            // 2. Ensuring the TDS server allows CORS from your frontend domain.
+            //
+            // For demonstration, let's assume the TDS URL is directly accessible or you have a proxy.
+            // If you face CORS issues here, you might need a small /api/proxy-pdf endpoint on your backend.
+
+            const pdfResponse = await fetch(`/api/proxy-pdf?url=${encodeURIComponent(tdsUrl)}`); // Use a proxy for CORS
+            if (!pdfResponse.ok) {
+                throw new Error(`Failed to download PDF from ${tdsUrl} via proxy: ${pdfResponse.statusText}`);
+            }
+            const pdfBlob = await pdfResponse.blob();
+
+            // Convert Blob to Base64
+            const reader = new FileReader();
+            reader.readAsDataURL(pdfBlob);
+
+            await new Promise<void>((resolve, reject) => {
+                reader.onloadend = async () => {
+                    const base64data = reader.result as string;
+                    const pdfBase64 = base64data.split(',')[1]; // Get only the base64 part
+
+                    const filenameMatch = tdsUrl.match(/\/([^\/?#]+)[\?#]?$/);
+                    const fileName = filenameMatch ? filenameMatch[1] : `${productName}_${fetchedGradeId}_TDS.pdf`;
+
+                    const mailSubject = `TDS for Polymer Grade: ${productName} - ${fetchedGradeId}`;
+                    const mailBody = `
+                        <h1>Hello ${userName || 'User'},</h1>
+                        <p>Thank you for your interest in our polymer grades. Please find the Technical Data Sheet (TDS) for <b>${productName} - ${fetchedGradeId}</b> attached.</p>
+                        <p>If you have any further questions, feel free to contact us.</p>
+                        <p>Regards,<br>Your Team</p>
+                    `;
+
+                    const emailPayload = {
+                        MailFrom: "pbdadmin@indianoil.in",
+                        MailTo: [userEmail],
+                        MailCCTo: ["yadavsp@indianoil.in"],
+                        MailBCCTo: ["yadavsp@indianoil.in"],
+                        MailSubject: mailSubject,
+                        MailBody: mailBody,
+                        Attachments: [
+                            {
+                                FileName: fileName,
+                                ContentBase64: pdfBase64,
+                            },
+                        ],
+                    };
+
+                    const emailApiUrl = 'https://bdqacvtms.indianoil.in/api/email';
+                    const emailApiKey = 'bdis@2025'; // Exposing API keys in frontend is generally not recommended for production!
+
+                    const sendEmailResponse = await fetch(emailApiUrl, {
+                        method: 'POST',
+                        headers: {
+                            'x-api-key': emailApiKey, // This is a security risk if the API key is sensitive!
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(emailPayload),
+                    });
+
+                    if (!sendEmailResponse.ok) {
+                        const errorText = await sendEmailResponse.text();
+                        console.error('External email API error (Frontend):', errorText);
+                        throw new Error(`Failed to send email directly: ${sendEmailResponse.status} - ${errorText}`);
+                    }
+
+                    const emailResult = await sendEmailResponse.json();
+                    console.log('Email sent successfully directly from Frontend:', emailResult);
+                    toast.success("TDS sent to your email directly from Frontend successfully!", { id: "send-email-frontend-toast" });
+                    resolve();
+                };
+                reader.onerror = (error) => reject(error);
+            });
+
+        } catch (err: any) {
+            console.error('Failed to send email with TDS attachment (Frontend):', err);
+            toast.error(`Error sending email (Frontend): ${err.message || "Something went wrong."}`, { id: "send-email-frontend-toast" });
+        }
+    }, [grade]); // Depend on grade to ensure its data is available
 
     // Effect for fetching grade details
     useEffect(() => {
@@ -94,24 +204,20 @@ const GradeDetailPage =  ({ params }: { params: Promise<{ gradeId: string }> }) 
         };
 
         fetchGradeDetails();
-    }, [gradeId]); // Depend on gradeId
+    }, [gradeId]);
 
-    // Effect for triggering email send (separately and non-blocking)
+    // Effect for triggering email send via BACKEND API (separately and non-blocking)
     useEffect(() => {
-        // Only attempt to send email once details are loaded and gradeId is available
-        // We ensure grade is not null before attempting to send email by checking loadingDetails
-        if (gradeId && !loadingDetails) {
-            // We don't await this, it runs in the background
+        if (gradeId && !loadingDetails && grade) { // Ensure grade object is available
             sendTdsEmail(gradeId);
         }
-    }, [gradeId, loadingDetails, sendTdsEmail]); // Depend on gradeId, loadingDetails state, and the memoized sender
+    }, [gradeId, loadingDetails, sendTdsEmail, grade]); // Added grade to dependencies
 
     if (loadingDetails) return <div className="text-center py-20 text-xl font-semibold text-white">Loading Grade Details...</div>;
     if (error) return <div className="text-center py-20 text-red-600 font-bold">Error: {error}</div>;
     if (!grade) return <div className="text-center py-20 text-xl font-semibold text-white">Grade not found.</div>;
 
     const downloadLink = grade.tds_url || `https://yourdomain.com/downloads/${grade.GRADE_ID}-brochure.pdf`;
-
 
     return (
         <div className="relative flex flex-col items-center justify-center  p-4">
@@ -236,6 +342,15 @@ const GradeDetailPage =  ({ params }: { params: Promise<{ gradeId: string }> }) 
                                 className="bg-gray-200 text-gray-800 font-bold hover:bg-gray-300 rounded-full flex items-center px-6"
                             >
                                 <ArrowLeft className="mr-2 h-4 w-4" /> Back to Results
+                            </Button>
+
+                            {/* NEW: Button to trigger direct frontend email send */}
+                            <Button
+                                onClick={sendTdsEmailDirectlyFromFrontend}
+                                className="bg-gradient-to-b from-[#1E90FF] to-[#87CEEB] text-white font-bold hover:opacity-90 rounded-full flex items-center px-6"
+                                disabled={!grade || loadingDetails}
+                            >
+                                <Mail className="mr-2 h-4 w-4" /> Send Mail
                             </Button>
                         </div>
                     </div>
