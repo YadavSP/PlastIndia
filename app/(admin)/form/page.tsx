@@ -187,9 +187,9 @@ export default function Formpage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen">
+       <div className="mt-8">
       <FormProvider {...form}>
-        <form className="mt-auto"
+        <form className="space-y-6"
           onSubmit={form.handleSubmit(onSubmit, () => {
             toast.warning("Please fill all mandatory fields", {
               description: "Highlighted fields are required",
