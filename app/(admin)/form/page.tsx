@@ -187,15 +187,15 @@ export default function Formpage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen justify-end">
+    <div className="flex flex-col min-h-screen">
       <FormProvider {...form}>
-        <form
+        <form className="mt-auto"
           onSubmit={form.handleSubmit(onSubmit, () => {
             toast.warning("Please fill all mandatory fields", {
               description: "Highlighted fields are required",
             })
           })}
-          className="space-y-6"
+          
         >
           <div className="container mx-auto p-4 bg-white bg-opacity-30 backdrop-blur-lg rounded-2xl shadow-2xl">
             <CardHeader>
